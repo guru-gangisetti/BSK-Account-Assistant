@@ -1,0 +1,2163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AccuBiz - Business Account & Loan Assistant</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <!-- Chart.js for financial visuals -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              900: '#14532d'
+            },
+            accent: {
+              50: '#eff6ff',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      body { background: white !important; color: black !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col md:flex-row antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- Mobile Top Bar -->
+  <div class="md:hidden flex items-center justify-between bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-30">
+    <div class="flex items-center space-x-2">
+      <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold shadow-sm">
+        <i class="ph ph-wallet text-lg"></i>
+      </div>
+      <span class="font-bold text-lg text-slate-800 tracking-tight">AccuBiz</span>
+    </div>
+    <button id="mobileMenuBtn" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+      <i class="ph ph-list text-2xl"></i>
+    </button>
+  </div>
+
+  <!-- Sidebar Navigation -->
+  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out flex flex-col no-print">
+    <!-- Brand -->
+    <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+          <i class="ph-bold ph-coins text-2xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-white tracking-wide text-base leading-tight">AccuBiz</h1>
+          <p class="text-xs text-emerald-400 font-medium">Business Accounting</p>
+        </div>
+      </div>
+      <button id="closeSidebarBtn" class="md:hidden text-slate-400 hover:text-white">
+        <i class="ph ph-x text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Currency & Quick Balance Selector -->
+    <div class="px-5 py-4 bg-slate-800/60 mx-3 my-3 rounded-xl border border-slate-700/60">
+      <span class="text-xs uppercase font-semibold text-slate-400 tracking-wider">Operating Currency</span>
+      <select id="currencySelector" class="mt-1 w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-emerald-500 outline-none cursor-pointer">
+        <option value="$">USD ($)</option>
+        <option value="₹" selected>INR (₹)</option>
+        <option value="€">EUR (€)</option>
+        <option value="£">GBP (£)</option>
+        <option value="AED">AED (AED)</option>
+      </select>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="flex-1 px-3 space-y-1.5 overflow-y-auto custom-scrollbar">
+      <a href="#" data-section="dashboard" class="nav-item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors bg-emerald-600/10 text-emerald-400">
+        <i class="ph ph-chart-pie-slice text-lg"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" data-section="expenses" class="nav-item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
+        <i class="ph ph-receipt text-lg"></i>
+        <span>Daily Expenses</span>
+      </a>
+      <a href="#" data-section="inflows" class="nav-item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
+        <i class="ph ph-arrow-circle-down-right text-lg"></i>
+        <span>Revenue & Inflows</span>
+      </a>
+      <a href="#" data-section="loans" class="nav-item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
+        <i class="ph ph-hand-coins text-lg"></i>
+        <span>Loans & Interest</span>
+      </a>
+      <a href="#" data-section="ledger" class="nav-item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
+        <i class="ph ph-book-open text-lg"></i>
+        <span>Full Audit Ledger</span>
+      </a>
+      <a href="#" data-section="calculator" class="nav-item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
+        <i class="ph ph-calculator text-lg"></i>
+        <span>Loan Calculator</span>
+      </a>
+    </nav>
+
+    <!-- Bottom Actions -->
+    <div class="p-4 border-t border-slate-800 space-y-2">
+      <button onclick="app.exportToCSV()" class="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+        <i class="ph ph-download-simple text-base"></i>
+        <span>Export Financials</span>
+      </button>
+      <button onclick="app.resetDemoData()" class="w-full flex items-center justify-center space-x-2 py-1.5 px-3 rounded-lg text-slate-400 hover:text-rose-400 text-xs transition">
+        <i class="ph ph-arrows-counter-clockwise"></i>
+        <span>Reload Demo Data</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Overlay for mobile drawer -->
+  <div id="drawerOverlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden md:hidden"></div>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+    <!-- Top Bar -->
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-20 no-print shadow-xs">
+      <div>
+        <h2 id="pageTitle" class="text-xl font-bold text-slate-900">Financial Dashboard</h2>
+        <p id="pageSubtitle" class="text-xs text-slate-500">Live operational liquidity, debt obligations, and profit margins</p>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="flex items-center flex-wrap gap-2">
+        <button onclick="app.openModal('expenseModal')" class="inline-flex items-center space-x-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition">
+          <i class="ph-bold ph-minus-circle"></i>
+          <span>Add Expense</span>
+        </button>
+        <button onclick="app.openModal('inflowModal')" class="inline-flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition">
+          <i class="ph-bold ph-plus-circle"></i>
+          <span>Add Revenue</span>
+        </button>
+        <button onclick="app.openModal('loanModal')" class="inline-flex items-center space-x-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition">
+          <i class="ph-bold ph-bank"></i>
+          <span>Record Loan</span>
+        </button>
+        <button onclick="window.print()" class="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 text-xs font-medium" title="Print Statement">
+          <i class="ph ph-printer text-base"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Dynamic Content Area -->
+    <div class="p-4 sm:p-6 lg:p-8 space-y-6">
+
+      <!-- SECTION 1: DASHBOARD -->
+      <section id="section-dashboard" class="space-y-6">
+        <!-- Metric Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Net Account Balance (Cash in hand) -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden">
+            <div class="absolute -right-3 -top-3 w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 opacity-60">
+              <i class="ph-fill ph-wallet text-3xl"></i>
+            </div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Net Cash In Hand</p>
+            <div class="mt-2 flex items-baseline space-x-2">
+              <h3 id="statNetBalance" class="text-2xl lg:text-3xl font-extrabold text-emerald-600 tracking-tight">₹0.00</h3>
+            </div>
+            <p class="mt-2 text-xs text-slate-500 flex items-center">
+              <i class="ph ph-info mr-1 text-slate-400"></i>
+              Real available liquid business balance
+            </p>
+          </div>
+
+          <!-- Total Expenses -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden">
+            <div class="absolute -right-3 -top-3 w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 opacity-60">
+              <i class="ph-fill ph-trend-down text-3xl"></i>
+            </div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Business Expenses</p>
+            <div class="mt-2 flex items-baseline space-x-2">
+              <h3 id="statTotalExpenses" class="text-2xl lg:text-3xl font-extrabold text-rose-600 tracking-tight">₹0.00</h3>
+            </div>
+            <p class="mt-2 text-xs text-slate-500" id="statExpenseBreakdownCount">0 transactions recorded</p>
+          </div>
+
+          <!-- Active Borrowed Loans -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden">
+            <div class="absolute -right-3 -top-3 w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 opacity-60">
+              <i class="ph-fill ph-hand-coins text-3xl"></i>
+            </div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Active Loan Outstanding</p>
+            <div class="mt-2 flex items-baseline space-x-2">
+              <h3 id="statActiveLoans" class="text-2xl lg:text-3xl font-extrabold text-amber-600 tracking-tight">₹0.00</h3>
+            </div>
+            <p class="mt-2 text-xs text-slate-500" id="statActiveLoanCount">Principal remaining</p>
+          </div>
+
+          <!-- Interest Accrued / Paid -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm relative overflow-hidden">
+            <div class="absolute -right-3 -top-3 w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-purple-500 opacity-60">
+              <i class="ph-fill ph-percent text-3xl"></i>
+            </div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Interest Accrued</p>
+            <div class="mt-2 flex items-baseline space-x-2">
+              <h3 id="statTotalInterest" class="text-2xl lg:text-3xl font-extrabold text-purple-600 tracking-tight">₹0.00</h3>
+            </div>
+            <p class="mt-2 text-xs text-slate-500" id="statPaidInterest">₹0.00 paid to lenders</p>
+          </div>
+        </div>
+
+        <!-- Charts & Summary Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Flow Trend Chart -->
+          <div class="lg:col-span-2 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h4 class="font-bold text-slate-900 text-sm">Financial Cash Flow Breakdown</h4>
+                <p class="text-xs text-slate-500">Income vs Expenses vs Debt Borrowed</p>
+              </div>
+              <span class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md font-medium">All-time</span>
+            </div>
+            <div class="h-64 relative">
+              <canvas id="cashflowBarChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Expense Category Distribution -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col">
+            <h4 class="font-bold text-slate-900 text-sm mb-1">Expense Breakdown</h4>
+            <p class="text-xs text-slate-500 mb-4">Where your business capital is spent</p>
+            <div class="flex-1 flex items-center justify-center relative min-h-[190px]">
+              <canvas id="categoryDoughnutChart"></canvas>
+            </div>
+            <div id="categoryLegend" class="mt-3 text-xs space-y-1.5 max-h-32 overflow-y-auto custom-scrollbar"></div>
+          </div>
+        </div>
+
+        <!-- Recent Activities & Urgent Loans Alert -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Quick Loan Repayment Watchlist -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center space-x-2">
+                <i class="ph-bold ph-shield-warning text-amber-500 text-lg"></i>
+                <h4 class="font-bold text-slate-900 text-sm">Active Loan Portfolio</h4>
+              </div>
+              <button onclick="app.showSection('loans')" class="text-xs font-semibold text-emerald-600 hover:underline">View All</button>
+            </div>
+            <div id="dashboardLoansList" class="space-y-3">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Latest Operations Ledger Preview -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center space-x-2">
+                <i class="ph-bold ph-clock-counter-clockwise text-indigo-500 text-lg"></i>
+                <h4 class="font-bold text-slate-900 text-sm">Recent Transactions</h4>
+              </div>
+              <button onclick="app.showSection('ledger')" class="text-xs font-semibold text-emerald-600 hover:underline">Full Ledger</button>
+            </div>
+            <div id="dashboardRecentLedger" class="space-y-2">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: DAILY EXPENSES -->
+      <section id="section-expenses" class="hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex flex-wrap items-center gap-2">
+            <input type="text" id="expenseSearchInput" placeholder="Search description, recipient..." oninput="app.renderExpenses()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-48 sm:w-64">
+            
+            <select id="expenseCategoryFilter" onchange="app.renderExpenses()" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none">
+              <option value="ALL">All Categories</option>
+              <option value="Inventory / Raw Materials">Inventory & Goods</option>
+              <option value="Salaries & Wages">Salaries & Wages</option>
+              <option value="Utilities & Bills">Utilities & Bills</option>
+              <option value="Rent & Property">Rent & Office</option>
+              <option value="Logistics & Delivery">Logistics & Delivery</option>
+              <option value="Marketing & Sales">Marketing & Ads</option>
+              <option value="Maintenance & Equipment">Maintenance</option>
+              <option value="Miscellaneous">Miscellaneous</option>
+            </select>
+
+            <select id="expenseMethodFilter" onchange="app.renderExpenses()" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none">
+              <option value="ALL">All Modes</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="UPI / Online">UPI / QR</option>
+              <option value="Cash">Cash In Hand</option>
+              <option value="Credit Card">Credit Card</option>
+            </select>
+          </div>
+
+          <button onclick="app.openModal('expenseModal')" class="inline-flex items-center space-x-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm">
+            <i class="ph-bold ph-plus"></i>
+            <span>Log Daily Expense</span>
+          </button>
+        </div>
+
+        <!-- Expenses Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 text-slate-500 uppercase font-semibold text-[11px] border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-4">Date</th>
+                  <th class="py-3 px-4">Category</th>
+                  <th class="py-3 px-4">Description / Payee</th>
+                  <th class="py-3 px-4">Payment Mode</th>
+                  <th class="py-3 px-4">Ref/Voucher #</th>
+                  <th class="py-3 px-4 text-right">Amount</th>
+                  <th class="py-3 px-4 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="expensesTableBody" class="divide-y divide-slate-100">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+          <div id="emptyExpenseMsg" class="hidden py-12 text-center text-slate-400">
+            <i class="ph ph-receipt-x text-4xl mb-2 text-slate-300"></i>
+            <p>No expense entries found matching criteria.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: REVENUE & INFLOWS -->
+      <section id="section-inflows" class="hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm">Direct Revenue & Capital Inflow</h3>
+            <p class="text-xs text-slate-500">Record day-to-day sales, customer collections, and capital investments</p>
+          </div>
+          <button onclick="app.openModal('inflowModal')" class="inline-flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm">
+            <i class="ph-bold ph-plus"></i>
+            <span>Record Income / Sales</span>
+          </button>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 text-slate-500 uppercase font-semibold text-[11px] border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-4">Date</th>
+                  <th class="py-3 px-4">Inflow Source</th>
+                  <th class="py-3 px-4">Client / Payer Details</th>
+                  <th class="py-3 px-4">Deposit Channel</th>
+                  <th class="py-3 px-4">Invoice / Receipt #</th>
+                  <th class="py-3 px-4 text-right">Amount Credited</th>
+                  <th class="py-3 px-4 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="inflowsTableBody" class="divide-y divide-slate-100">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+          <div id="emptyInflowMsg" class="hidden py-12 text-center text-slate-400">
+            <i class="ph ph-hand-deposit text-4xl mb-2 text-slate-300"></i>
+            <p>No revenue records logged yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: LOANS & BORROWING MANAGEMENT -->
+      <section id="section-loans" class="hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">Debt & Borrowing Portfolio</h3>
+            <p class="text-xs text-slate-500">Track loans taken, interest rates, scheduled repayments, and total liability</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="app.showSection('calculator')" class="inline-flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg transition">
+              <i class="ph ph-calculator"></i>
+              <span>EMI / Interest Calc</span>
+            </button>
+            <button onclick="app.openModal('loanModal')" class="inline-flex items-center space-x-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition">
+              <i class="ph-bold ph-plus"></i>
+              <span>Borrow New Loan</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Loans Cards Display -->
+        <div id="loansCardsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Loan Repayments History -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-slate-900 text-sm">Loan Repayment Log (Principal & Interest Disbursed)</h4>
+            <span class="text-xs text-slate-400">Reduces debt liability and business cash</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 text-slate-500 uppercase font-semibold text-[11px] border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Date</th>
+                  <th class="py-2.5 px-3">Lender / Loan</th>
+                  <th class="py-2.5 px-3">Principal Paid</th>
+                  <th class="py-2.5 px-3">Interest Paid</th>
+                  <th class="py-2.5 px-3">Total Paid</th>
+                  <th class="py-2.5 px-3">Mode</th>
+                  <th class="py-2.5 px-3">Notes</th>
+                  <th class="py-2.5 px-3 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="repaymentsTableBody" class="divide-y divide-slate-100">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+          <div id="emptyRepaymentMsg" class="hidden py-8 text-center text-slate-400 text-xs">
+            No loan repayments logged yet.
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 5: AUDIT LEDGER -->
+      <section id="section-ledger" class="hidden space-y-6">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="font-bold text-slate-900 text-base">Complete Business Ledger & Cash Book</h3>
+              <p class="text-xs text-slate-500">Chronological transaction record with running account balance</p>
+            </div>
+            <div class="flex items-center space-x-2 no-print">
+              <button onclick="app.exportToCSV()" class="inline-flex items-center space-x-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold px-3 py-2 rounded-lg transition">
+                <i class="ph ph-file-csv text-base"></i>
+                <span>Download CSV</span>
+              </button>
+              <button onclick="window.print()" class="inline-flex items-center space-x-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold px-3 py-2 rounded-lg transition">
+                <i class="ph ph-printer text-base"></i>
+                <span>Print PDF Statement</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Ledger Filters -->
+          <div class="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100 text-xs">
+            <span class="font-semibold text-slate-500 uppercase tracking-wider text-[11px]">Filter by:</span>
+            <button onclick="app.setLedgerFilter('ALL')" class="ledger-filter-btn px-2.5 py-1 rounded-md bg-slate-800 text-white font-medium" data-filter="ALL">All Entries</button>
+            <button onclick="app.setLedgerFilter('INFLOW')" class="ledger-filter-btn px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium" data-filter="INFLOW">Only Inflows (+)</button>
+            <button onclick="app.setLedgerFilter('OUTFLOW')" class="ledger-filter-btn px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium" data-filter="OUTFLOW">Only Outflows (-)</button>
+            <button onclick="app.setLedgerFilter('LOAN')" class="ledger-filter-btn px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium" data-filter="LOAN">Loan Transactions</button>
+          </div>
+        </div>
+
+        <!-- Ledger Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-900 text-slate-200 uppercase font-semibold text-[11px]">
+                <tr>
+                  <th class="py-3 px-4">Date</th>
+                  <th class="py-3 px-4">Transaction Details</th>
+                  <th class="py-3 px-4">Flow Type</th>
+                  <th class="py-3 px-4">Method / Channel</th>
+                  <th class="py-3 px-4 text-right">Debit Out (-)</th>
+                  <th class="py-3 px-4 text-right">Credit In (+)</th>
+                  <th class="py-3 px-4 text-right font-bold">Running Balance</th>
+                </tr>
+              </thead>
+              <tbody id="ledgerTableBody" class="divide-y divide-slate-100 font-mono text-[12px]">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 6: LOAN CALCULATOR -->
+      <section id="section-calculator" class="hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center space-x-2">
+              <i class="ph-bold ph-calculator text-emerald-600 text-2xl"></i>
+              <h3 class="font-bold text-slate-900 text-base">Commercial Loan & Interest Estimator</h3>
+            </div>
+            <p class="text-xs text-slate-500">Simulate business borrowings, estimate monthly repayments, and plan debt affordability before borrowing.</p>
+
+            <div class="space-y-3 pt-2">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Principal Amount</label>
+                <input type="number" id="calcPrincipal" value="100000" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" oninput="app.runCalculator()">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Annual Interest Rate (%)</label>
+                <input type="number" step="0.1" id="calcRate" value="12.0" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" oninput="app.runCalculator()">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Tenure (In Months)</label>
+                <input type="number" id="calcTenure" value="12" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" oninput="app.runCalculator()">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Calculation Method</label>
+                <select id="calcType" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" onchange="app.runCalculator()">
+                  <option value="emi">Reducing Balance (Standard Monthly EMI)</option>
+                  <option value="flat">Flat Simple Interest</option>
+                  <option value="interestOnly">Interest Only (Principal bullet pay at end)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Calculation Result Card -->
+          <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+              <h4 class="font-bold text-slate-800 text-sm mb-4">Projected Repayment Summary</h4>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span class="text-[11px] text-slate-400 font-semibold uppercase">Monthly Outflow</span>
+                  <p id="resMonthlyPayment" class="text-xl font-bold text-emerald-600 mt-1">₹0.00</p>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span class="text-[11px] text-slate-400 font-semibold uppercase">Total Interest</span>
+                  <p id="resTotalInterest" class="text-xl font-bold text-purple-600 mt-1">₹0.00</p>
+                </div>
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span class="text-[11px] text-slate-400 font-semibold uppercase">Total Repayment</span>
+                  <p id="resTotalPayment" class="text-xl font-bold text-slate-900 mt-1">₹0.00</p>
+                </div>
+              </div>
+
+              <!-- Visual Proportion -->
+              <div class="mt-6">
+                <div class="flex justify-between text-xs font-semibold mb-1">
+                  <span class="text-slate-600">Principal: <span id="barPrincipalLabel">₹100,000</span></span>
+                  <span class="text-purple-600">Interest: <span id="barInterestLabel">₹12,000</span></span>
+                </div>
+                <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex">
+                  <div id="barPrincipal" class="bg-emerald-500 h-full transition-all" style="width: 80%"></div>
+                  <div id="barInterest" class="bg-purple-500 h-full transition-all" style="width: 20%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 space-y-1">
+              <p class="font-semibold flex items-center"><i class="ph ph-lightbulb mr-1.5"></i> Business Loan Tip</p>
+              <p>Borrowing increases immediate liquid cash in your account, but the principal liability is not income. Always maintain an interest reserve ratio equal to 3 months of EMI.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. ADD EXPENSE MODAL -->
+  <div id="expenseModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+          <i class="ph-bold ph-receipt text-rose-600"></i>
+          <span>Record Daily Business Expense</span>
+        </h3>
+        <button onclick="app.closeModal('expenseModal')" class="text-slate-400 hover:text-slate-600">
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+      <form id="expenseForm" onsubmit="app.handleExpenseSubmit(event)" class="space-y-3 mt-4 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Expense Date *</label>
+            <input type="date" id="expDate" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Amount *</label>
+            <input type="number" step="0.01" id="expAmount" required placeholder="0.00" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Expense Category *</label>
+          <select id="expCategory" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 outline-none">
+            <option value="Inventory / Raw Materials">Inventory / Raw Materials</option>
+            <option value="Salaries & Wages">Salaries & Wages</option>
+            <option value="Utilities & Bills">Utilities & Bills (Electricity, Water, Internet)</option>
+            <option value="Rent & Property">Office / Shop Rent</option>
+            <option value="Logistics & Delivery">Logistics & Transportation</option>
+            <option value="Marketing & Sales">Marketing & Promotion</option>
+            <option value="Maintenance & Equipment">Maintenance & Repairs</option>
+            <option value="Taxes & Legal">Taxes, License & Legal Fees</option>
+            <option value="Miscellaneous">Miscellaneous</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Description / Paid To *</label>
+          <input type="text" id="expDesc" required placeholder="e.g. Supplier payment for packing materials" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Payment Channel *</label>
+            <select id="expMethod" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 outline-none">
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="UPI / Online">UPI / PhonePe / GPay</option>
+              <option value="Cash">Cash in Hand</option>
+              <option value="Credit Card">Credit Card</option>
+              <option value="Cheque">Cheque</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Bill / Voucher # (Optional)</label>
+            <input type="text" id="expRef" placeholder="e.g. INV-9042" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 outline-none">
+          </div>
+        </div>
+
+        <div class="pt-3 flex justify-end space-x-2">
+          <button type="button" onclick="app.closeModal('expenseModal')" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-sm">Save Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. ADD REVENUE / INFLOW MODAL -->
+  <div id="inflowModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+          <i class="ph-bold ph-plus-circle text-emerald-600"></i>
+          <span>Record Business Inflow / Sales</span>
+        </h3>
+        <button onclick="app.closeModal('inflowModal')" class="text-slate-400 hover:text-slate-600">
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+      <form id="inflowForm" onsubmit="app.handleInflowSubmit(event)" class="space-y-3 mt-4 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Inflow Date *</label>
+            <input type="date" id="inflowDate" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Amount Credited *</label>
+            <input type="number" step="0.01" id="inflowAmount" required placeholder="0.00" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Inflow Source Category *</label>
+          <select id="inflowSource" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+            <option value="Direct Sales Revenue">Daily Direct Sales Revenue</option>
+            <option value="Client Receivable Payment">Client Receivable / Invoice Settled</option>
+            <option value="Owner Capital Contribution">Owner Capital Injection</option>
+            <option value="Commission / Rebate">Commission / Partner Rebate</option>
+            <option value="Asset Sale">Equipment / Asset Sale</option>
+            <option value="Other Inflow">Other Income</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Payer / Client Name / Description *</label>
+          <input type="text" id="inflowDesc" required placeholder="e.g. Order #4102 - Apex Enterprises" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Deposited To *</label>
+            <select id="inflowMethod" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+              <option value="Bank Transfer">Main Current Bank A/c</option>
+              <option value="UPI / Online">Business UPI / QR</option>
+              <option value="Cash">Cash Register</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Tax Invoice # (Optional)</label>
+            <input type="text" id="inflowRef" placeholder="e.g. INV-2024-05" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+        </div>
+
+        <div class="pt-3 flex justify-end space-x-2">
+          <button type="button" onclick="app.closeModal('inflowModal')" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm">Credit Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. BORROW NEW LOAN MODAL -->
+  <div id="loanModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+          <i class="ph-bold ph-hand-coins text-indigo-600"></i>
+          <span>Record New Loan Borrowed</span>
+        </h3>
+        <button onclick="app.closeModal('loanModal')" class="text-slate-400 hover:text-slate-600">
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+      <form id="loanForm" onsubmit="app.handleLoanSubmit(event)" class="space-y-3 mt-4 text-xs">
+        <div class="p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl text-indigo-900 text-[11px] leading-relaxed">
+          <strong>Note:</strong> Borrowing this loan will immediately add the principal amount into your active cash in hand, and register an ongoing interest liability.
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Lender / Financial Source *</label>
+            <input type="text" id="loanLender" required placeholder="e.g. HDFC Bank, Private Investor" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Loan Category</label>
+            <select id="loanType" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="Bank Business Loan">Bank Business Loan</option>
+              <option value="Working Capital Loan">Working Capital / OD</option>
+              <option value="Private / Partner Loan">Private / Friend Loan</option>
+              <option value="Equipment Finance">Equipment Finance</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Principal Borrowed *</label>
+            <input type="number" step="0.01" id="loanPrincipal" required placeholder="100000" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Interest Rate (%/yr) *</label>
+            <input type="number" step="0.1" id="loanRate" required placeholder="12.5" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Tenure (Months) *</label>
+            <input type="number" id="loanTenure" required placeholder="12" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Borrow Date *</label>
+            <input type="date" id="loanDate" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Interest Logic</label>
+            <select id="loanInterestLogic" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="reducing">Reducing Balance EMI</option>
+              <option value="simple">Simple / Flat Interest</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Notes / Loan Agreement Ref</label>
+          <input type="text" id="loanNotes" placeholder="Loan A/c # 8829103 - 1st charge on inventory" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+
+        <div class="pt-3 flex justify-end space-x-2">
+          <button type="button" onclick="app.closeModal('loanModal')" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-sm">Confirm & Receive Funds</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. REPAY LOAN MODAL -->
+  <div id="repayLoanModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+          <i class="ph-bold ph-hand-deposit text-purple-600"></i>
+          <span>Record Loan Repayment</span>
+        </h3>
+        <button onclick="app.closeModal('repayLoanModal')" class="text-slate-400 hover:text-slate-600">
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+      <form id="repayLoanForm" onsubmit="app.handleRepaymentSubmit(event)" class="space-y-3 mt-4 text-xs">
+        <input type="hidden" id="repayLoanId">
+
+        <div class="p-3 bg-purple-50 rounded-xl border border-purple-100 flex items-center justify-between">
+          <div>
+            <p class="font-bold text-purple-900" id="repayLenderTitle">Lender</p>
+            <p class="text-[11px] text-purple-700">Remaining Principal: <span id="repayOutstandingPrincipal" class="font-semibold">₹0</span></p>
+          </div>
+          <div class="text-right">
+            <span class="text-[11px] text-purple-700">Monthly Est. EMI</span>
+            <p class="font-bold text-purple-900" id="repayEstimatedEMI">₹0</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Repayment Date *</label>
+            <input type="date" id="repayDate" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-purple-500 outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Payment Mode *</label>
+            <select id="repayMode" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-purple-500 outline-none">
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="UPI / Online">UPI / NetBanking</option>
+              <option value="Cheque">Cheque</option>
+              <option value="Cash">Cash</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Principal vs Interest Breakdown for the repayment -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Principal Reduction Amount *</label>
+            <input type="number" step="0.01" id="repayPrincipalPart" required placeholder="0.00" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-purple-500 outline-none" oninput="app.updateTotalRepaymentSum()">
+            <span class="text-[10px] text-slate-400">Lowers borrowed debt</span>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Interest Amount *</label>
+            <input type="number" step="0.01" id="repayInterestPart" required placeholder="0.00" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-purple-500 outline-none" oninput="app.updateTotalRepaymentSum()">
+            <span class="text-[10px] text-slate-400">Finance fee paid</span>
+          </div>
+        </div>
+
+        <div class="p-2.5 bg-slate-50 rounded-lg flex items-center justify-between text-xs font-semibold">
+          <span class="text-slate-600">Total Deducted From Balance:</span>
+          <span id="repayTotalDisplay" class="text-rose-600 font-bold">₹0.00</span>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Voucher / Transaction Reference</label>
+          <input type="text" id="repayNotes" placeholder="e.g. Month 1 EMI - UTR# 4920193" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-purple-500 outline-none">
+        </div>
+
+        <div class="pt-3 flex justify-end space-x-2">
+          <button type="button" onclick="app.closeModal('repayLoanModal')" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs shadow-sm">Record Repayment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Box -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center space-x-3 text-xs transform transition-all duration-300 translate-y-20 opacity-0 pointer-events-none">
+    <i id="toastIcon" class="ph-bold ph-check-circle text-emerald-400 text-lg"></i>
+    <span id="toastMsg" class="font-medium">Action successful</span>
+  </div>
+
+  <!-- APP ENGINE LOGIC -->
+  <script>
+    class BusinessAccountingApp {
+      constructor() {
+        this.currency = '₹';
+        this.currentLedgerFilter = 'ALL';
+        this.chartInstances = {};
+
+        // Application State Model
+        this.expenses = [];
+        this.inflows = [];
+        this.loans = [];
+        this.repayments = [];
+
+        this.init();
+      }
+
+      init() {
+        // Set today's date in form pickers
+        const todayStr = new Date().toISOString().split('T')[0];
+        ['expDate', 'inflowDate', 'loanDate', 'repayDate'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = todayStr;
+        });
+
+        // Setup event bindings
+        this.bindEvents();
+
+        // Load storage or pre-populate with practical demo data
+        this.loadData();
+
+        // Run default loan calculator computation
+        this.runCalculator();
+
+        // Update UI
+        this.refreshAll();
+      }
+
+      bindEvents() {
+        // Mobile Sidebar
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('drawerOverlay');
+
+        const toggleDrawer = (open) => {
+          if (open) {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+          } else {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+          }
+        };
+
+        if (mobileBtn) mobileBtn.addEventListener('click', () => toggleDrawer(true));
+        if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', () => toggleDrawer(false));
+        if (overlay) overlay.addEventListener('click', () => toggleDrawer(false));
+
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+          item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = item.getAttribute('data-section');
+            this.showSection(section);
+            if (window.innerWidth < 768) toggleDrawer(false);
+          });
+        });
+
+        // Currency Selector
+        const currSelector = document.getElementById('currencySelector');
+        if (currSelector) {
+          currSelector.addEventListener('change', (e) => {
+            this.currency = e.target.value;
+            this.saveData();
+            this.refreshAll();
+            this.showToast(`Operating currency switched to ${this.currency}`);
+          });
+        }
+      }
+
+      showSection(sectionId) {
+        // Update nav styling
+        document.querySelectorAll('.nav-item').forEach(item => {
+          const sec = item.getAttribute('data-section');
+          if (sec === sectionId) {
+            item.className = 'nav-item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors bg-emerald-600/10 text-emerald-400';
+          } else {
+            item.className = 'nav-item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors text-slate-400 hover:bg-slate-800 hover:text-white';
+          }
+        });
+
+        // Toggle sections
+        ['dashboard', 'expenses', 'inflows', 'loans', 'ledger', 'calculator'].forEach(sec => {
+          const el = document.getElementById(`section-${sec}`);
+          if (el) {
+            if (sec === sectionId) el.classList.remove('hidden');
+            else el.classList.add('hidden');
+          }
+        });
+
+        // Titles
+        const titles = {
+          dashboard: { t: 'Financial Dashboard', sub: 'Live operational liquidity, debt obligations, and profit margins' },
+          expenses: { t: 'Daily Business Expenses', sub: 'Categorized daily spending, supplier payments, and overheads' },
+          inflows: { t: 'Revenue & Capital Inflows', sub: 'Customer sales deposits, invoice settlements, and injections' },
+          loans: { t: 'Borrowings & Debt Management', sub: 'Active business loans, interest accrual, and repayment schedules' },
+          ledger: { t: 'Audit Trail & Cash Book', sub: 'Running balance history with chronological ledger entries' },
+          calculator: { t: 'Commercial Loan & EMI Calculator', sub: 'Estimate business loan costs, interest, and monthly installments' }
+        };
+
+        if (titles[sectionId]) {
+          document.getElementById('pageTitle').innerText = titles[sectionId].t;
+          document.getElementById('pageSubtitle').innerText = titles[sectionId].sub;
+        }
+
+        // Render sections if needed
+        if (sectionId === 'expenses') this.renderExpenses();
+        if (sectionId === 'inflows') this.renderInflows();
+        if (sectionId === 'loans') this.renderLoans();
+        if (sectionId === 'ledger') this.renderLedger();
+        if (sectionId === 'dashboard') this.renderCharts();
+      }
+
+      // Calculations: Total liquidity, interest, debt
+      calculateTotals() {
+        const totalExpenses = this.expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+        const totalInflows = this.inflows.reduce((sum, item) => sum + Number(item.amount), 0);
+        
+        // Loans: principal received into account
+        const totalLoanBorrowed = this.loans.reduce((sum, item) => sum + Number(item.principal), 0);
+        
+        // Repayments: principal repaid and interest paid
+        const totalPrincipalRepaid = this.repayments.reduce((sum, item) => sum + Number(item.principalPart), 0);
+        const totalInterestPaid = this.repayments.reduce((sum, item) => sum + Number(item.interestPart), 0);
+
+        // Active principal outstanding across all loans
+        const activePrincipalRemaining = Math.max(0, totalLoanBorrowed - totalPrincipalRepaid);
+
+        // Approximate accrued interest across loans based on tenure/rate
+        let estimatedTotalInterestLiability = 0;
+        this.loans.forEach(loan => {
+          const p = Number(loan.principal);
+          const r = Number(loan.rate) / 100;
+          const tYears = Number(loan.tenureMonths) / 12;
+          // Simple flat or reducing estimation
+          estimatedTotalInterestLiability += (p * r * tYears);
+        });
+
+        // Net Cash in hand formula:
+        // (Direct Revenue + Loan Principal Received) - (Expenses + Principal Repayments + Interest Repayments)
+        const netCashBalance = (totalInflows + totalLoanBorrowed) - (totalExpenses + totalPrincipalRepaid + totalInterestPaid);
+
+        return {
+          totalExpenses,
+          totalInflows,
+          totalLoanBorrowed,
+          totalPrincipalRepaid,
+          totalInterestPaid,
+          activePrincipalRemaining,
+          estimatedTotalInterestLiability,
+          netCashBalance
+        };
+      }
+
+      refreshAll() {
+        const stats = this.calculateTotals();
+
+        // Update Stat Cards
+        document.getElementById('statNetBalance').innerText = `${this.currency}${stats.netCashBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('statTotalExpenses').innerText = `${this.currency}${stats.totalExpenses.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('statActiveLoans').innerText = `${this.currency}${stats.activePrincipalRemaining.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('statTotalInterest').innerText = `${this.currency}${stats.estimatedTotalInterestLiability.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+        // Auxiliary notes
+        document.getElementById('statExpenseBreakdownCount').innerText = `${this.expenses.length} transaction${this.expenses.length === 1 ? '' : 's'} recorded`;
+        document.getElementById('statActiveLoanCount').innerText = `${this.loans.filter(l => this.getLoanRemainingPrincipal(l.id) > 0).length} active borrowing${this.loans.length === 1 ? '' : 's'}`;
+        document.getElementById('statPaidInterest').innerText = `${this.currency}${stats.totalInterestPaid.toLocaleString(undefined, {minimumFractionDigits: 2})} paid to lenders`;
+
+        // Style Net Balance color depending on solvency
+        const netEl = document.getElementById('statNetBalance');
+        if (stats.netCashBalance < 0) {
+          netEl.className = 'text-2xl lg:text-3xl font-extrabold text-rose-600 tracking-tight';
+        } else {
+          netEl.className = 'text-2xl lg:text-3xl font-extrabold text-emerald-600 tracking-tight';
+        }
+
+        // Render widgets
+        this.renderDashboardLoanList();
+        this.renderDashboardRecentLedger();
+        this.renderCharts();
+        this.renderExpenses();
+        this.renderInflows();
+        this.renderLoans();
+        this.renderLedger();
+      }
+
+      getLoanRemainingPrincipal(loanId) {
+        const loan = this.loans.find(l => l.id === loanId);
+        if (!loan) return 0;
+        const repaid = this.repayments
+          .filter(r => r.loanId === loanId)
+          .reduce((sum, r) => sum + Number(r.principalPart), 0);
+        return Math.max(0, Number(loan.principal) - repaid);
+      }
+
+      getLoanTotalInterestPaid(loanId) {
+        return this.repayments
+          .filter(r => r.loanId === loanId)
+          .reduce((sum, r) => sum + Number(r.interestPart), 0);
+      }
+
+      // Render Dashboard small loan list
+      renderDashboardLoanList() {
+        const container = document.getElementById('dashboardLoansList');
+        if (!container) return;
+
+        const activeLoans = this.loans.filter(l => this.getLoanRemainingPrincipal(l.id) > 0);
+
+        if (activeLoans.length === 0) {
+          container.innerHTML = `
+            <div class="py-6 text-center text-slate-400 text-xs">
+              <i class="ph ph-check-circle text-2xl text-emerald-500 mb-1"></i>
+              <p>Your business is debt-free! No active loans.</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = activeLoans.slice(0, 3).map(loan => {
+          const remaining = this.getLoanRemainingPrincipal(loan.id);
+          const percentPaid = Math.round(((Number(loan.principal) - remaining) / Number(loan.principal)) * 100);
+          return `
+            <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h5 class="font-bold text-slate-800 text-xs">${loan.lender}</h5>
+                  <p class="text-[11px] text-slate-500">${loan.rate}% p.a. • ${loan.tenureMonths} Months</p>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-bold text-amber-600">${this.currency}${remaining.toLocaleString()}</span>
+                  <p class="text-[10px] text-slate-400">of ${this.currency}${Number(loan.principal).toLocaleString()}</p>
+                </div>
+              </div>
+              <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-emerald-500 h-full" style="width: ${percentPaid}%"></div>
+              </div>
+              <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1">
+                <span>Repaid: ${percentPaid}%</span>
+                <button onclick="app.openRepayModal('${loan.id}')" class="text-indigo-600 font-semibold hover:underline">Repay EMI / Interest</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Render Dashboard recent ledger preview
+      renderDashboardRecentLedger() {
+        const container = document.getElementById('dashboardRecentLedger');
+        if (!container) return;
+
+        const allEntries = this.buildLedgerEntries().slice(0, 4);
+
+        if (allEntries.length === 0) {
+          container.innerHTML = '<div class="py-6 text-center text-slate-400 text-xs">No transactions recorded yet.</div>';
+          return;
+        }
+
+        container.innerHTML = allEntries.map(entry => {
+          const isCredit = entry.type === 'INFLOW' || entry.type === 'LOAN_BORROWED';
+          return `
+            <div class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0 text-xs">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-7 h-7 rounded-lg flex items-center justify-center ${isCredit ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">
+                  <i class="ph ${isCredit ? 'ph-arrow-down-left' : 'ph-arrow-up-right'}"></i>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-800 leading-tight">${entry.title}</p>
+                  <p class="text-[10px] text-slate-400">${entry.date} • ${entry.method || 'General'}</p>
+                </div>
+              </div>
+              <span class="font-bold ${isCredit ? 'text-emerald-600' : 'text-rose-600'}">
+                ${isCredit ? '+' : '-'}${this.currency}${Number(entry.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}
+              </span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Build Chronological Unified Ledger
+      buildLedgerEntries() {
+        const list = [];
+
+        // Inflows
+        this.inflows.forEach(i => {
+          list.push({
+            id: i.id,
+            date: i.date,
+            timestamp: new Date(i.date).getTime(),
+            title: `${i.source}: ${i.desc}`,
+            category: i.source,
+            type: 'INFLOW',
+            amount: Number(i.amount),
+            method: i.method,
+            rawItem: i
+          });
+        });
+
+        // Expenses
+        this.expenses.forEach(e => {
+          list.push({
+            id: e.id,
+            date: e.date,
+            timestamp: new Date(e.date).getTime(),
+            title: `Expense: ${e.desc} (${e.category})`,
+            category: e.category,
+            type: 'EXPENSE',
+            amount: Number(e.amount),
+            method: e.method,
+            rawItem: e
+          });
+        });
+
+        // Loans Taken (Inflow to business cash)
+        this.loans.forEach(l => {
+          list.push({
+            id: l.id,
+            date: l.date,
+            timestamp: new Date(l.date).getTime(),
+            title: `Loan Received: ${l.lender} (${l.type || 'Debt'})`,
+            category: 'Loan Inflow',
+            type: 'LOAN_BORROWED',
+            amount: Number(l.principal),
+            method: 'Bank / Direct',
+            rawItem: l
+          });
+        });
+
+        // Repayments (Principal and Interest outflow)
+        this.repayments.forEach(r => {
+          const loanObj = this.loans.find(l => l.id === r.loanId);
+          const lenderName = loanObj ? loanObj.lender : 'Lender';
+          const totalOutflow = Number(r.principalPart) + Number(r.interestPart);
+
+          list.push({
+            id: r.id,
+            date: r.date,
+            timestamp: new Date(r.date).getTime(),
+            title: `Repayment to ${lenderName} (P: ${this.currency}${r.principalPart} + Int: ${this.currency}${r.interestPart})`,
+            category: 'Debt Repayment',
+            type: 'LOAN_REPAYMENT',
+            amount: totalOutflow,
+            method: r.mode,
+            rawItem: r
+          });
+        });
+
+        // Sort ascending for calculation of running balance
+        list.sort((a, b) => a.timestamp - b.timestamp);
+
+        let running = 0;
+        list.forEach(item => {
+          if (item.type === 'INFLOW' || item.type === 'LOAN_BORROWED') {
+            running += item.amount;
+          } else {
+            running -= item.amount;
+          }
+          item.runningBalance = running;
+        });
+
+        // Return latest first
+        return list.reverse();
+      }
+
+      // Charts Visualizer
+      renderCharts() {
+        const stats = this.calculateTotals();
+
+        // 1. Bar Chart: Cash flow breakdown
+        const barCanvas = document.getElementById('cashflowBarChart');
+        if (barCanvas) {
+          if (this.chartInstances.cashflow) this.chartInstances.cashflow.destroy();
+
+          const ctx = barCanvas.getContext('2d');
+          this.chartInstances.cashflow = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: ['Sales & Revenue', 'Loans Inflow', 'Daily Expenses', 'Principal Repaid', 'Interest Paid'],
+              datasets: [{
+                data: [
+                  stats.totalInflows,
+                  stats.totalLoanBorrowed,
+                  stats.totalExpenses,
+                  stats.totalPrincipalRepaid,
+                  stats.totalInterestPaid
+                ],
+                backgroundColor: [
+                  '#10b981', // green
+                  '#6366f1', // indigo
+                  '#f43f5e', // rose
+                  '#f59e0b', // amber
+                  '#a855f7'  // purple
+                ],
+                borderRadius: 8,
+                barThickness: 28
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: (context) => ` ${this.currency}${context.raw.toLocaleString()}`
+                  }
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { color: '#f1f5f9' },
+                  ticks: {
+                    font: { size: 10 },
+                    callback: (value) => `${this.currency}${value >= 1000 ? (value/1000) + 'k' : value}`
+                  }
+                },
+                x: {
+                  grid: { display: false },
+                  ticks: { font: { size: 10 } }
+                }
+              }
+            }
+          });
+        }
+
+        // 2. Doughnut Chart: Expense Categories
+        const catCanvas = document.getElementById('categoryDoughnutChart');
+        if (catCanvas) {
+          if (this.chartInstances.category) this.chartInstances.category.destroy();
+
+          // Aggregate expenses by category
+          const catMap = {};
+          this.expenses.forEach(e => {
+            catMap[e.category] = (catMap[e.category] || 0) + Number(e.amount);
+          });
+
+          const categories = Object.keys(catMap);
+          const amounts = Object.values(catMap);
+
+          const defaultColors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'];
+
+          if (categories.length === 0) {
+            categories.push('No Expenses');
+            amounts.push(1);
+          }
+
+          const ctxCat = catCanvas.getContext('2d');
+          this.chartInstances.category = new Chart(ctxCat, {
+            type: 'doughnut',
+            data: {
+              labels: categories,
+              datasets: [{
+                data: amounts,
+                backgroundColor: defaultColors.slice(0, categories.length),
+                borderWidth: 2,
+                borderColor: '#ffffff'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '72%',
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: (context) => ` ${context.label}: ${this.currency}${Number(context.raw).toLocaleString()}`
+                  }
+                }
+              }
+            }
+          });
+
+          // Legend
+          const legendEl = document.getElementById('categoryLegend');
+          if (legendEl) {
+            legendEl.innerHTML = categories.map((cat, idx) => {
+              if (cat === 'No Expenses') return '';
+              const amt = catMap[cat] || 0;
+              const color = defaultColors[idx % defaultColors.length];
+              return `
+                <div class="flex items-center justify-between text-[11px] text-slate-600">
+                  <div class="flex items-center space-x-1.5 truncate">
+                    <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${color}"></span>
+                    <span class="truncate">${cat}</span>
+                  </div>
+                  <span class="font-semibold">${this.currency}${amt.toLocaleString()}</span>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+      }
+
+      // Render Expenses Table
+      renderExpenses() {
+        const tbody = document.getElementById('expensesTableBody');
+        const emptyMsg = document.getElementById('emptyExpenseMsg');
+        if (!tbody) return;
+
+        const query = (document.getElementById('expenseSearchInput')?.value || '').toLowerCase();
+        const catFilter = document.getElementById('expenseCategoryFilter')?.value || 'ALL';
+        const methodFilter = document.getElementById('expenseMethodFilter')?.value || 'ALL';
+
+        const filtered = this.expenses.filter(item => {
+          const matchesQuery = item.desc.toLowerCase().includes(query) || (item.ref || '').toLowerCase().includes(query);
+          const matchesCat = catFilter === 'ALL' || item.category === catFilter;
+          const matchesMethod = methodFilter === 'ALL' || item.method === methodFilter;
+          return matchesQuery && matchesCat && matchesMethod;
+        }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = '';
+          emptyMsg?.classList.remove('hidden');
+          return;
+        }
+
+        emptyMsg?.classList.add('hidden');
+        tbody.innerHTML = filtered.map(item => `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="py-3 px-4 font-medium text-slate-900 whitespace-nowrap">${item.date}</td>
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                ${item.category}
+              </span>
+            </td>
+            <td class="py-3 px-4 font-medium text-slate-800">${item.desc}</td>
+            <td class="py-3 px-4 text-slate-500">${item.method}</td>
+            <td class="py-3 px-4 font-mono text-slate-400 text-[11px]">${item.ref || '-'}</td>
+            <td class="py-3 px-4 text-right font-bold text-rose-600 whitespace-nowrap font-mono">
+              -${this.currency}${Number(item.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}
+            </td>
+            <td class="py-3 px-4 text-center">
+              <button onclick="app.deleteExpense('${item.id}')" class="text-slate-400 hover:text-rose-600 transition p-1" title="Delete">
+                <i class="ph ph-trash text-base"></i>
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      // Render Inflows Table
+      renderInflows() {
+        const tbody = document.getElementById('inflowsTableBody');
+        const emptyMsg = document.getElementById('emptyInflowMsg');
+        if (!tbody) return;
+
+        const list = [...this.inflows].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        if (list.length === 0) {
+          tbody.innerHTML = '';
+          emptyMsg?.classList.remove('hidden');
+          return;
+        }
+
+        emptyMsg?.classList.add('hidden');
+        tbody.innerHTML = list.map(item => `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="py-3 px-4 font-medium text-slate-900 whitespace-nowrap">${item.date}</td>
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                ${item.source}
+              </span>
+            </td>
+            <td class="py-3 px-4 font-medium text-slate-800">${item.desc}</td>
+            <td class="py-3 px-4 text-slate-500">${item.method}</td>
+            <td class="py-3 px-4 font-mono text-slate-400 text-[11px]">${item.ref || '-'}</td>
+            <td class="py-3 px-4 text-right font-bold text-emerald-600 whitespace-nowrap font-mono">
+              +${this.currency}${Number(item.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}
+            </td>
+            <td class="py-3 px-4 text-center">
+              <button onclick="app.deleteInflow('${item.id}')" class="text-slate-400 hover:text-rose-600 transition p-1" title="Delete">
+                <i class="ph ph-trash text-base"></i>
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      // Render Loans Section Cards & Repayment list
+      renderLoans() {
+        const container = document.getElementById('loansCardsContainer');
+        const repBody = document.getElementById('repaymentsTableBody');
+        const emptyRepMsg = document.getElementById('emptyRepaymentMsg');
+        if (!container) return;
+
+        if (this.loans.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full py-12 text-center bg-white rounded-2xl border border-slate-200 text-slate-400">
+              <i class="ph ph-bank text-4xl mb-2 text-slate-300"></i>
+              <p>No business loans borrowed yet.</p>
+              <button onclick="app.openModal('loanModal')" class="mt-3 inline-flex items-center space-x-1.5 text-xs text-indigo-600 font-bold hover:underline">
+                <span>+ Borrow Loan</span>
+              </button>
+            </div>
+          `;
+        } else {
+          container.innerHTML = this.loans.map(loan => {
+            const remaining = this.getLoanRemainingPrincipal(loan.id);
+            const totalRepaidPrincipal = Number(loan.principal) - remaining;
+            const interestPaid = this.getLoanTotalInterestPaid(loan.id);
+            const isFullyPaid = remaining <= 0;
+            const percentRepaid = Math.min(100, Math.round((totalRepaidPrincipal / Number(loan.principal)) * 100));
+
+            // Estimate Monthly EMI
+            const p = Number(loan.principal);
+            const r = (Number(loan.rate) / 12) / 100;
+            const n = Number(loan.tenureMonths);
+            let estEMI = 0;
+            if (r > 0) {
+              estEMI = (p * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+            } else {
+              estEMI = p / n;
+            }
+
+            return `
+              <div class="bg-white rounded-2xl p-5 border ${isFullyPaid ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200'} shadow-sm space-y-4 flex flex-col justify-between">
+                <div>
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">${loan.type || 'Commercial Debt'}</span>
+                      <h4 class="font-bold text-slate-900 text-base leading-tight">${loan.lender}</h4>
+                      <p class="text-xs text-slate-500 mt-0.5">Disbursed on ${loan.date}</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${isFullyPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                      ${isFullyPaid ? 'PAID OFF' : 'ACTIVE LOAN'}
+                    </span>
+                  </div>
+
+                  <!-- Details Grid -->
+                  <div class="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-slate-100 text-xs">
+                    <div>
+                      <span class="text-slate-400 text-[11px]">Original Principal</span>
+                      <p class="font-bold text-slate-800">${this.currency}${Number(loan.principal).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <span class="text-slate-400 text-[11px]">Interest Rate</span>
+                      <p class="font-bold text-indigo-600">${loan.rate}% per year</p>
+                    </div>
+                    <div>
+                      <span class="text-slate-400 text-[11px]">Tenure</span>
+                      <p class="font-bold text-slate-800">${loan.tenureMonths} Months</p>
+                    </div>
+                    <div>
+                      <span class="text-slate-400 text-[11px]">Est. Monthly EMI</span>
+                      <p class="font-bold text-purple-600">${this.currency}${Math.round(estEMI).toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  <!-- Balance Progress -->
+                  <div class="mt-4 space-y-1">
+                    <div class="flex justify-between text-xs">
+                      <span class="text-slate-500">Remaining Balance</span>
+                      <span class="font-extrabold text-amber-600">${this.currency}${remaining.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                      <div class="bg-indigo-600 h-full transition-all duration-300" style="width: ${percentRepaid}%"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-slate-400">
+                      <span>Repaid: ${this.currency}${totalRepaidPrincipal.toLocaleString()} (${percentRepaid}%)</span>
+                      <span>Interest Paid: ${this.currency}${interestPaid.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <button onclick="app.deleteLoan('${loan.id}')" class="text-slate-400 hover:text-rose-600 text-xs flex items-center space-x-1" title="Delete record">
+                    <i class="ph ph-trash"></i>
+                    <span>Delete</span>
+                  </button>
+                  ${!isFullyPaid ? `
+                    <button onclick="app.openRepayModal('${loan.id}')" class="inline-flex items-center space-x-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold px-3 py-1.5 rounded-lg text-xs transition">
+                      <i class="ph ph-hand-deposit"></i>
+                      <span>Pay Installment</span>
+                    </button>
+                  ` : `
+                    <span class="text-xs text-emerald-600 font-semibold flex items-center">
+                      <i class="ph ph-check mr-1"></i> Settled
+                    </span>
+                  `}
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        // Repayments table
+        if (repBody) {
+          if (this.repayments.length === 0) {
+            repBody.innerHTML = '';
+            emptyRepMsg?.classList.remove('hidden');
+          } else {
+            emptyRepMsg?.classList.add('hidden');
+            const sortedRep = [...this.repayments].sort((a, b) => new Date(b.date) - new Date(a.date));
+            repBody.innerHTML = sortedRep.map(r => {
+              const loanObj = this.loans.find(l => l.id === r.loanId);
+              const lender = loanObj ? loanObj.lender : 'Unknown Lender';
+              const total = Number(r.principalPart) + Number(r.interestPart);
+              return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                  <td class="py-2.5 px-3 font-medium text-slate-900">${r.date}</td>
+                  <td class="py-2.5 px-3 font-semibold text-slate-800">${lender}</td>
+                  <td class="py-2.5 px-3 text-indigo-600 font-mono font-medium">${this.currency}${Number(r.principalPart).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                  <td class="py-2.5 px-3 text-purple-600 font-mono font-medium">${this.currency}${Number(r.interestPart).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                  <td class="py-2.5 px-3 font-bold text-rose-600 font-mono">${this.currency}${total.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                  <td class="py-2.5 px-3 text-slate-500">${r.mode}</td>
+                  <td class="py-2.5 px-3 text-slate-400 truncate max-w-xs">${r.notes || '-'}</td>
+                  <td class="py-2.5 px-3 text-center">
+                    <button onclick="app.deleteRepayment('${r.id}')" class="text-slate-400 hover:text-rose-600">
+                      <i class="ph ph-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+          }
+        }
+      }
+
+      // Render Audit Ledger
+      renderLedger() {
+        const tbody = document.getElementById('ledgerTableBody');
+        if (!tbody) return;
+
+        let entries = this.buildLedgerEntries();
+
+        // Filter buttons handling
+        if (this.currentLedgerFilter === 'INFLOW') {
+          entries = entries.filter(e => e.type === 'INFLOW');
+        } else if (this.currentLedgerFilter === 'OUTFLOW') {
+          entries = entries.filter(e => e.type === 'EXPENSE');
+        } else if (this.currentLedgerFilter === 'LOAN') {
+          entries = entries.filter(e => e.type === 'LOAN_BORROWED' || e.type === 'LOAN_REPAYMENT');
+        }
+
+        if (entries.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400">No ledger entries matching criteria.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = entries.map(item => {
+          const isCredit = item.type === 'INFLOW' || item.type === 'LOAN_BORROWED';
+          const typeBadge = {
+            INFLOW: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+            EXPENSE: 'bg-rose-50 text-rose-700 border-rose-200',
+            LOAN_BORROWED: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+            LOAN_REPAYMENT: 'bg-purple-50 text-purple-700 border-purple-200'
+          }[item.type];
+
+          return `
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="py-3 px-4 whitespace-nowrap text-slate-700">${item.date}</td>
+              <td class="py-3 px-4 font-sans font-medium text-slate-800">${item.title}</td>
+              <td class="py-3 px-4">
+                <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-sans font-bold border ${typeBadge}">
+                  ${item.type.replace('_', ' ')}
+                </span>
+              </td>
+              <td class="py-3 px-4 font-sans text-slate-500">${item.method || '-'}</td>
+              <td class="py-3 px-4 text-right text-rose-600 font-bold">
+                ${!isCredit ? `-${this.currency}${item.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}` : '-'}
+              </td>
+              <td class="py-3 px-4 text-right text-emerald-600 font-bold">
+                ${isCredit ? `+${this.currency}${item.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}` : '-'}
+              </td>
+              <td class="py-3 px-4 text-right font-bold text-slate-900 bg-slate-50/50">
+                ${this.currency}${item.runningBalance.toLocaleString(undefined, {minimumFractionDigits: 2})}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      setLedgerFilter(filterType) {
+        this.currentLedgerFilter = filterType;
+        document.querySelectorAll('.ledger-filter-btn').forEach(btn => {
+          if (btn.getAttribute('data-filter') === filterType) {
+            btn.className = 'ledger-filter-btn px-2.5 py-1 rounded-md bg-slate-800 text-white font-medium';
+          } else {
+            btn.className = 'ledger-filter-btn px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium';
+          }
+        });
+        this.renderLedger();
+      }
+
+      // LOAN CALCULATOR ENGINE
+      runCalculator() {
+        const principal = parseFloat(document.getElementById('calcPrincipal')?.value) || 0;
+        const annualRate = parseFloat(document.getElementById('calcRate')?.value) || 0;
+        const tenureMonths = parseInt(document.getElementById('calcTenure')?.value) || 1;
+        const type = document.getElementById('calcType')?.value || 'emi';
+
+        let monthlyPay = 0;
+        let totalInterest = 0;
+        let totalPayment = 0;
+
+        if (type === 'emi') {
+          const monthlyRate = (annualRate / 12) / 100;
+          if (monthlyRate > 0) {
+            monthlyPay = (principal * monthlyRate * Math.pow(1 + monthlyRate, tenureMonths)) / (Math.pow(1 + monthlyRate, tenureMonths) - 1);
+            totalPayment = monthlyPay * tenureMonths;
+            totalInterest = Math.max(0, totalPayment - principal);
+          } else {
+            monthlyPay = principal / tenureMonths;
+            totalPayment = principal;
+            totalInterest = 0;
+          }
+        } else if (type === 'flat') {
+          totalInterest = principal * (annualRate / 100) * (tenureMonths / 12);
+          totalPayment = principal + totalInterest;
+          monthlyPay = totalPayment / tenureMonths;
+        } else {
+          // Interest only monthly, principal at end
+          const monthlyInterest = (principal * (annualRate / 100)) / 12;
+          monthlyPay = monthlyInterest;
+          totalInterest = monthlyInterest * tenureMonths;
+          totalPayment = principal + totalInterest;
+        }
+
+        // Render Calc Results
+        document.getElementById('resMonthlyPayment').innerText = `${this.currency}${Math.round(monthlyPay).toLocaleString()}`;
+        document.getElementById('resTotalInterest').innerText = `${this.currency}${Math.round(totalInterest).toLocaleString()}`;
+        document.getElementById('resTotalPayment').innerText = `${this.currency}${Math.round(totalPayment).toLocaleString()}`;
+
+        // Ratio Bar
+        const safeTotal = totalPayment > 0 ? totalPayment : 1;
+        const principalRatio = Math.round((principal / safeTotal) * 100);
+        const interestRatio = Math.max(0, 100 - principalRatio);
+
+        document.getElementById('barPrincipal').style.width = `${principalRatio}%`;
+        document.getElementById('barInterest').style.width = `${interestRatio}%`;
+        document.getElementById('barPrincipalLabel').innerText = `${this.currency}${Math.round(principal).toLocaleString()} (${principalRatio}%)`;
+        document.getElementById('barInterestLabel').innerText = `${this.currency}${Math.round(totalInterest).toLocaleString()} (${interestRatio}%)`;
+      }
+
+      // SUBMIT HANDLERS
+      handleExpenseSubmit(e) {
+        e.preventDefault();
+        const expense = {
+          id: 'exp_' + Date.now(),
+          date: document.getElementById('expDate').value,
+          amount: parseFloat(document.getElementById('expAmount').value),
+          category: document.getElementById('expCategory').value,
+          desc: document.getElementById('expDesc').value.trim(),
+          method: document.getElementById('expMethod').value,
+          ref: document.getElementById('expRef').value.trim()
+        };
+
+        this.expenses.push(expense);
+        this.saveData();
+        this.closeModal('expenseModal');
+        e.target.reset();
+        document.getElementById('expDate').value = new Date().toISOString().split('T')[0];
+        this.refreshAll();
+        this.showToast('Daily expense recorded successfully!');
+      }
+
+      handleInflowSubmit(e) {
+        e.preventDefault();
+        const inflow = {
+          id: 'inf_' + Date.now(),
+          date: document.getElementById('inflowDate').value,
+          amount: parseFloat(document.getElementById('inflowAmount').value),
+          source: document.getElementById('inflowSource').value,
+          desc: document.getElementById('inflowDesc').value.trim(),
+          method: document.getElementById('inflowMethod').value,
+          ref: document.getElementById('inflowRef').value.trim()
+        };
+
+        this.inflows.push(inflow);
+        this.saveData();
+        this.closeModal('inflowModal');
+        e.target.reset();
+        document.getElementById('inflowDate').value = new Date().toISOString().split('T')[0];
+        this.refreshAll();
+        this.showToast('Revenue added! Cash balance updated.');
+      }
+
+      handleLoanSubmit(e) {
+        e.preventDefault();
+        const loan = {
+          id: 'loan_' + Date.now(),
+          lender: document.getElementById('loanLender').value.trim(),
+          type: document.getElementById('loanType').value,
+          principal: parseFloat(document.getElementById('loanPrincipal').value),
+          rate: parseFloat(document.getElementById('loanRate').value),
+          tenureMonths: parseInt(document.getElementById('loanTenure').value),
+          date: document.getElementById('loanDate').value,
+          logic: document.getElementById('loanInterestLogic').value,
+          notes: document.getElementById('loanNotes').value.trim()
+        };
+
+        this.loans.push(loan);
+        this.saveData();
+        this.closeModal('loanModal');
+        e.target.reset();
+        document.getElementById('loanDate').value = new Date().toISOString().split('T')[0];
+        this.refreshAll();
+        this.showToast(`Loan from ${loan.lender} credited to business account!`);
+      }
+
+      openRepayModal(loanId) {
+        const loan = this.loans.find(l => l.id === loanId);
+        if (!loan) return;
+
+        const remaining = this.getLoanRemainingPrincipal(loanId);
+        document.getElementById('repayLoanId').value = loanId;
+        document.getElementById('repayLenderTitle').innerText = loan.lender;
+        document.getElementById('repayOutstandingPrincipal').innerText = `${this.currency}${remaining.toLocaleString()}`;
+
+        // Monthly EMI proposal
+        const p = Number(loan.principal);
+        const r = (Number(loan.rate) / 12) / 100;
+        const n = Number(loan.tenureMonths);
+        const emi = r > 0 ? (p * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : p / n;
+        document.getElementById('repayEstimatedEMI').innerText = `${this.currency}${Math.round(emi).toLocaleString()}`;
+
+        // Split default into estimated interest + principal
+        const approxMonthInt = Math.round((remaining * (loan.rate / 100)) / 12);
+        const approxPrincipal = Math.max(0, Math.min(remaining, Math.round(emi - approxMonthInt)));
+
+        document.getElementById('repayPrincipalPart').value = approxPrincipal;
+        document.getElementById('repayInterestPart').value = approxMonthInt;
+        this.updateTotalRepaymentSum();
+
+        this.openModal('repayLoanModal');
+      }
+
+      updateTotalRepaymentSum() {
+        const p = parseFloat(document.getElementById('repayPrincipalPart')?.value) || 0;
+        const i = parseFloat(document.getElementById('repayInterestPart')?.value) || 0;
+        const total = p + i;
+        document.getElementById('repayTotalDisplay').innerText = `-${this.currency}${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+      }
+
+      handleRepaymentSubmit(e) {
+        e.preventDefault();
+        const loanId = document.getElementById('repayLoanId').value;
+        const loan = this.loans.find(l => l.id === loanId);
+        if (!loan) return;
+
+        const principalPart = parseFloat(document.getElementById('repayPrincipalPart').value) || 0;
+        const interestPart = parseFloat(document.getElementById('repayInterestPart').value) || 0;
+
+        if (principalPart <= 0 && interestPart <= 0) {
+          this.showToast('Please enter principal or interest to pay.', true);
+          return;
+        }
+
+        const remaining = this.getLoanRemainingPrincipal(loanId);
+        if (principalPart > remaining + 0.01) {
+          this.showToast(`Principal part cannot exceed remaining balance of ${this.currency}${remaining.toLocaleString()}`, true);
+          return;
+        }
+
+        const repayment = {
+          id: 'rep_' + Date.now(),
+          loanId: loanId,
+          date: document.getElementById('repayDate').value,
+          mode: document.getElementById('repayMode').value,
+          principalPart: principalPart,
+          interestPart: interestPart,
+          notes: document.getElementById('repayNotes').value.trim()
+        };
+
+        this.repayments.push(repayment);
+        this.saveData();
+        this.closeModal('repayLoanModal');
+        e.target.reset();
+        document.getElementById('repayDate').value = new Date().toISOString().split('T')[0];
+        this.refreshAll();
+        this.showToast('Repayment logged! Debt and account balance updated.');
+      }
+
+      // DELETE HANDLERS
+      deleteExpense(id) {
+        this.expenses = this.expenses.filter(e => e.id !== id);
+        this.saveData();
+        this.refreshAll();
+        this.showToast('Expense removed.');
+      }
+
+      deleteInflow(id) {
+        this.inflows = this.inflows.filter(i => i.id !== id);
+        this.saveData();
+        this.refreshAll();
+        this.showToast('Revenue entry removed.');
+      }
+
+      deleteLoan(loanId) {
+        // Also remove associated repayments
+        this.loans = this.loans.filter(l => l.id !== loanId);
+        this.repayments = this.repayments.filter(r => r.loanId !== loanId);
+        this.saveData();
+        this.refreshAll();
+        this.showToast('Loan and repayment records deleted.');
+      }
+
+      deleteRepayment(repId) {
+        this.repayments = this.repayments.filter(r => r.id !== repId);
+        this.saveData();
+        this.refreshAll();
+        this.showToast('Repayment installment deleted.');
+      }
+
+      // MODAL CONTROLS
+      openModal(modalId) {
+        const el = document.getElementById(modalId);
+        if (el) el.classList.remove('hidden');
+      }
+
+      closeModal(modalId) {
+        const el = document.getElementById(modalId);
+        if (el) el.classList.add('hidden');
+      }
+
+      // TOAST NOTIFICATIONS
+      showToast(message, isError = false) {
+        const toast = document.getElementById('toast');
+        const msg = document.getElementById('toastMsg');
+        const icon = document.getElementById('toastIcon');
+
+        if (!toast || !msg) return;
+
+        msg.innerText = message;
+        if (isError) {
+          icon.className = 'ph-bold ph-warning-circle text-rose-400 text-lg';
+        } else {
+          icon.className = 'ph-bold ph-check-circle text-emerald-400 text-lg';
+        }
+
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        setTimeout(() => {
+          toast.classList.add('translate-y-20', 'opacity-0');
+        }, 3200);
+      }
+
+      // CSV EXPORTER
+      exportToCSV() {
+        const entries = this.buildLedgerEntries();
+        if (entries.length === 0) {
+          this.showToast('No transaction data to export.', true);
+          return;
+        }
+
+        const headers = ["Date", "Description", "Type", "Category", "Payment Method", "Outflow Amount", "Inflow Amount", "Account Balance"];
+        const rows = entries.map(e => {
+          const isCredit = e.type === 'INFLOW' || e.type === 'LOAN_BORROWED';
+          return [
+            `"${e.date}"`,
+            `"${e.title.replace(/"/g, '""')}"`,
+            `"${e.type}"`,
+            `"${e.category}"`,
+            `"${e.method || 'N/A'}"`,
+            !isCredit ? e.amount : 0,
+            isCredit ? e.amount : 0,
+            e.runningBalance
+          ];
+        });
+
+        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `AccuBiz_Statement_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        this.showToast('Financial CSV exported successfully!');
+      }
+
+      // PERSISTENCE (LocalStorage)
+      saveData() {
+        try {
+          const state = {
+            expenses: this.expenses,
+            inflows: this.inflows,
+            loans: this.loans,
+            repayments: this.repayments,
+            currency: this.currency
+          };
+          // In environments where localStorage is restricted, safely wrap in try/catch
+          window._accuBizState = state;
+          try {
+            localStorage.setItem('accubiz_data', JSON.stringify(state));
+          } catch (e) {
+            // fallback in memory
+          }
+        } catch (err) {
+          console.warn('Storage save fallback', err);
+        }
+      }
+
+      loadData() {
+        let loaded = null;
+        try {
+          const raw = localStorage.getItem('accubiz_data');
+          if (raw) loaded = JSON.parse(raw);
+        } catch (e) {
+          loaded = window._accuBizState;
+        }
+
+        if (loaded && (loaded.expenses?.length || loaded.inflows?.length || loaded.loans?.length)) {
+          this.expenses = loaded.expenses || [];
+          this.inflows = loaded.inflows || [];
+          this.loans = loaded.loans || [];
+          this.repayments = loaded.repayments || [];
+          this.currency = loaded.currency || '₹';
+          const sel = document.getElementById('currencySelector');
+          if (sel) sel.value = this.currency;
+        } else {
+          // Pre-populate with clean realistic business initial data
+          this.seedInitialBusinessData();
+        }
+      }
+
+      resetDemoData() {
+        this.seedInitialBusinessData();
+        this.saveData();
+        this.refreshAll();
+        this.showToast('Demo business transactions reloaded!');
+      }
+
+      seedInitialBusinessData() {
+        const today = new Date();
+        const d = (daysAgo) => {
+          const target = new Date(today);
+          target.setDate(target.getDate() - daysAgo);
+          return target.toISOString().split('T')[0];
+        };
+
+        this.currency = '₹';
+        const sel = document.getElementById('currencySelector');
+        if (sel) sel.value = '₹';
+
+        // Initial Loans
+        this.loans = [
+          {
+            id: 'loan_1',
+            lender: 'State Bank MSME Credit',
+            type: 'Bank Business Loan',
+            principal: 200000,
+            rate: 11.5,
+            tenureMonths: 24,
+            date: d(45),
+            logic: 'reducing',
+            notes: 'Machinery expansion working credit'
+          },
+          {
+            id: 'loan_2',
+            lender: 'Angel Partner (John D.)',
+            type: 'Private / Partner Loan',
+            principal: 75000,
+            rate: 8.0,
+            tenureMonths: 12,
+            date: d(20),
+            logic: 'simple',
+            notes: 'Short term stock procurement'
+          }
+        ];
+
+        // Initial Revenue Inflows
+        this.inflows = [
+          {
+            id: 'inf_1',
+            date: d(40),
+            amount: 85000,
+            source: 'Owner Capital Contribution',
+            desc: 'Initial working capital deposit',
+            method: 'Bank Transfer',
+            ref: 'CAP-001'
+          },
+          {
+            id: 'inf_2',
+            date: d(28),
+            amount: 42500,
+            source: 'Direct Sales Revenue',
+            desc: 'Bulk client invoice clearance #201',
+            method: 'Bank Transfer',
+            ref: 'INV-201'
+          },
+          {
+            id: 'inf_3',
+            date: d(12),
+            amount: 38200,
+            source: 'Direct Sales Revenue',
+            desc: 'Weekly store counter cash collections',
+            method: 'Cash',
+            ref: 'POS-W2'
+          },
+          {
+            id: 'inf_4',
+            date: d(3),
+            amount: 64000,
+            source: 'Client Receivable Payment',
+            desc: 'Corporate quarterly order delivery',
+            method: 'UPI / Online',
+            ref: 'INV-284'
+          }
+        ];
+
+        // Daily Expenses
+        this.expenses = [
+          {
+            id: 'exp_1',
+            date: d(35),
+            amount: 52000,
+            category: 'Inventory / Raw Materials',
+            desc: 'Wholesale textile raw material fabric',
+            method: 'Bank Transfer',
+            ref: 'SUP-491'
+          },
+          {
+            id: 'exp_2',
+            date: d(25),
+            amount: 25000,
+            category: 'Rent & Property',
+            desc: 'Commercial showroom monthly rent',
+            method: 'Bank Transfer',
+            ref: 'RENT-OCT'
+          },
+          {
+            id: 'exp_3',
+            date: d(20),
+            amount: 32000,
+            category: 'Salaries & Wages',
+            desc: 'Staff payroll disbursement',
+            method: 'Bank Transfer',
+            ref: 'PAYROLL-01'
+          },
+          {
+            id: 'exp_4',
+            date: d(14),
+            amount: 4800,
+            category: 'Utilities & Bills',
+            desc: 'Factory electricity & broadband bill',
+            method: 'UPI / Online',
+            ref: 'EB-992'
+          },
+          {
+            id: 'exp_5',
+            date: d(7),
+            amount: 7200,
+            category: 'Logistics & Delivery',
+            desc: 'Interstate transport freight courier fees',
+            method: 'Cash',
+            ref: 'FRG-102'
+          },
+          {
+            id: 'exp_6',
+            date: d(2),
+            amount: 5500,
+            category: 'Marketing & Sales',
+            desc: 'Social media ads & flyers campaign',
+            method: 'Credit Card',
+            ref: 'FB-ADS-2'
+          }
+        ];
+
+        // Repayments
+        this.repayments = [
+          {
+            id: 'rep_1',
+            loanId: 'loan_1',
+            date: d(15),
+            mode: 'Bank Transfer',
+            principalPart: 7450,
+            interestPart: 1910,
+            notes: 'Month 1 SBI EMI deduction'
+          }
+        ];
+      }
+    }
+
+    // Launch Application instance
+    let app;
+    window.addEventListener('DOMContentLoaded', () => {
+      app = new BusinessAccountingApp();
+    });
+  </script>
+</body>
+</html>
