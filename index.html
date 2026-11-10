@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AccuBiz - Business Account & Loan Assistant</title>
+  <title>AccuBiz - Business Account & Project Equity Assistant</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Phosphor Icons -->
@@ -40,7 +40,7 @@
         </div>
         <div>
           <h1 class="font-bold text-white tracking-wide text-base leading-tight">AccuBiz</h1>
-          <p class="text-xs text-emerald-400 font-medium">Business Accounting</p>
+          <p class="text-xs text-emerald-400 font-medium">Multi-Project Accounts</p>
         </div>
       </div>
       <button id="closeSidebarBtn" class="md:hidden text-slate-400 hover:text-white">
@@ -48,11 +48,25 @@
       </button>
     </div>
 
+    <!-- Active Project Switcher -->
+    <div class="px-5 py-3.5 bg-slate-800/80 mx-3 my-2.5 rounded-xl border border-slate-700/70 space-y-2">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Active Workspace</span>
+        <button onclick="window.app && window.app.openModal('projectModal')" class="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold flex items-center space-x-0.5">
+          <i class="ph-bold ph-plus"></i>
+          <span>New</span>
+        </button>
+      </div>
+      <select id="globalProjectSelector" onchange="window.app && window.app.handleProjectChange(this.value)" class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1.5 text-xs font-medium focus:ring-1 focus:ring-emerald-500 outline-none cursor-pointer">
+        <option value="ALL">All Projects (Consolidated)</option>
+      </select>
+    </div>
+
     <!-- Currency & Supabase Status -->
-    <div class="px-5 py-4 bg-slate-800/60 mx-3 my-3 rounded-xl border border-slate-700/60 space-y-3">
-      <div>
-        <span class="text-xs uppercase font-semibold text-slate-400 tracking-wider">Currency</span>
-        <select id="currencySelector" class="mt-1 w-full bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-emerald-500 outline-none cursor-pointer">
+    <div class="px-5 py-3 bg-slate-800/50 mx-3 mb-2 rounded-xl border border-slate-700/50 space-y-2">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Currency</span>
+        <select id="currencySelector" class="bg-slate-900 border border-slate-700 text-white rounded px-2 py-0.5 text-[11px] outline-none cursor-pointer">
           <option value="$">USD ($)</option>
           <option value="₹" selected>INR (₹)</option>
           <option value="€">EUR (€)</option>
@@ -62,7 +76,7 @@
       </div>
       
       <!-- Cloud Database Status Indicator -->
-      <div class="pt-2 border-t border-slate-700/50 flex items-center justify-between text-[11px]">
+      <div class="pt-2 border-t border-slate-700/40 flex items-center justify-between text-[11px]">
         <div class="flex items-center space-x-1.5">
           <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
           <span id="syncStatusText" class="text-slate-300">Checking Cloud...</span>
@@ -78,6 +92,10 @@
       <a href="#" data-section="dashboard" class="nav-item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors bg-emerald-600/10 text-emerald-400">
         <i class="ph ph-chart-pie-slice text-lg"></i>
         <span>Dashboard</span>
+      </a>
+      <a href="#" data-section="stakeholders" class="nav-item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
+        <i class="ph ph-users-three text-lg"></i>
+        <span>Stakeholders & Equity</span>
       </a>
       <a href="#" data-section="expenses" class="nav-item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
         <i class="ph ph-receipt text-lg"></i>
@@ -126,12 +144,19 @@
     <!-- Top Bar -->
     <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-20 no-print shadow-xs">
       <div>
-        <h2 id="pageTitle" class="text-xl font-bold text-slate-900">Financial Dashboard</h2>
+        <div class="flex items-center space-x-2">
+          <h2 id="pageTitle" class="text-xl font-bold text-slate-900">Financial Dashboard</h2>
+          <span id="currentProjectBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full">All Projects</span>
+        </div>
         <p id="pageSubtitle" class="text-xs text-slate-500">Live operational liquidity, debt obligations, and profit margins</p>
       </div>
 
       <!-- Quick Action Buttons -->
       <div class="flex items-center flex-wrap gap-2">
+        <button onclick="window.app && window.app.openModal('projectModal')" class="inline-flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition">
+          <i class="ph-bold ph-folder-plus"></i>
+          <span>New Project</span>
+        </button>
         <button onclick="window.app && window.app.openModal('expenseModal')" class="inline-flex items-center space-x-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition">
           <i class="ph-bold ph-minus-circle"></i>
           <span>Add Expense</span>
@@ -166,9 +191,9 @@
             <div class="mt-2 flex items-baseline space-x-2">
               <h3 id="statNetBalance" class="text-2xl lg:text-3xl font-extrabold text-emerald-600 tracking-tight">₹0.00</h3>
             </div>
-            <p class="mt-2 text-xs text-slate-500 flex items-center">
+            <p class="mt-2 text-xs text-slate-500 flex items-center" id="statBalanceScopeNote">
               <i class="ph ph-info mr-1 text-slate-400"></i>
-              Real available liquid business balance
+              Available liquid balance
             </p>
           </div>
 
@@ -201,11 +226,11 @@
             <div class="absolute -right-3 -top-3 w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-purple-500 opacity-60">
               <i class="ph-fill ph-percent text-3xl"></i>
             </div>
-            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Interest Accrued</p>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Net Distributable Profit</p>
             <div class="mt-2 flex items-baseline space-x-2">
-              <h3 id="statTotalInterest" class="text-2xl lg:text-3xl font-extrabold text-purple-600 tracking-tight">₹0.00</h3>
+              <h3 id="statNetProfit" class="text-2xl lg:text-3xl font-extrabold text-indigo-600 tracking-tight">₹0.00</h3>
             </div>
-            <p class="mt-2 text-xs text-slate-500" id="statPaidInterest">₹0.00 paid to lenders</p>
+            <p class="mt-2 text-xs text-slate-500" id="statProfitFormula">Revenue - (Expenses + Int)</p>
           </div>
         </div>
 
@@ -218,7 +243,7 @@
                 <h4 class="font-bold text-slate-900 text-sm">Financial Cash Flow Breakdown</h4>
                 <p class="text-xs text-slate-500">Income vs Expenses vs Debt Borrowed</p>
               </div>
-              <span class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md font-medium">All-time</span>
+              <span class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md font-medium" id="chartScopeLabel">All-time</span>
             </div>
             <div class="h-64 relative">
               <canvas id="cashflowBarChart"></canvas>
@@ -228,7 +253,7 @@
           <!-- Expense Category Distribution -->
           <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col">
             <h4 class="font-bold text-slate-900 text-sm mb-1">Expense Breakdown</h4>
-            <p class="text-xs text-slate-500 mb-4">Where your business capital is spent</p>
+            <p class="text-xs text-slate-500 mb-4">Where your capital is spent</p>
             <div class="flex-1 flex items-center justify-center relative min-h-[190px]">
               <canvas id="categoryDoughnutChart"></canvas>
             </div>
@@ -252,18 +277,78 @@
             </div>
           </div>
 
-          <!-- Latest Operations Ledger Preview -->
+          <!-- Stakeholders & Equity Overview Snapshot -->
           <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center space-x-2">
-                <i class="ph-bold ph-clock-counter-clockwise text-indigo-500 text-lg"></i>
-                <h4 class="font-bold text-slate-900 text-sm">Recent Transactions</h4>
+                <i class="ph-bold ph-users-three text-indigo-500 text-lg"></i>
+                <h4 class="font-bold text-slate-900 text-sm">Stakeholders & Equity Shares</h4>
               </div>
-              <button onclick="window.app && window.app.showSection('ledger')" class="text-xs font-semibold text-emerald-600 hover:underline">Full Ledger</button>
+              <button onclick="window.app && window.app.showSection('stakeholders')" class="text-xs font-semibold text-emerald-600 hover:underline">Manage Equity</button>
             </div>
-            <div id="dashboardRecentLedger" class="space-y-2">
+            <div id="dashboardStakeholdersList" class="space-y-2.5">
               <!-- Rendered via JS -->
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: STAKEHOLDERS & EQUITY -->
+      <section id="section-stakeholders" class="hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div>
+            <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+              <i class="ph-bold ph-users-three text-indigo-600"></i>
+              <span>Project Stakeholders & Equity Distribution</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Track partner shares (%), capital contributed, profit entitlements, and dividend payouts</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="window.app && window.app.openModal('stakeholderModal')" class="inline-flex items-center space-x-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition">
+              <i class="ph-bold ph-user-plus"></i>
+              <span>Add Stakeholder</span>
+            </button>
+            <button onclick="window.app && window.app.openModal('payoutModal')" class="inline-flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition">
+              <i class="ph-bold ph-hand-coins"></i>
+              <span>Record Profit Payout</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Equity Cards Grid by Project -->
+        <div id="projectEquityCardsContainer" class="space-y-6">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Distributions / Payout History Table -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-bold text-slate-900 text-sm">Partner Profit Payout & Dividend Log</h4>
+              <p class="text-xs text-slate-500">Record of profit draws and capital returns disbursed to stakeholders</p>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 text-slate-500 uppercase font-semibold text-[11px] border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Date</th>
+                  <th class="py-2.5 px-3">Project</th>
+                  <th class="py-2.5 px-3">Stakeholder / Partner</th>
+                  <th class="py-2.5 px-3">Payout Type</th>
+                  <th class="py-2.5 px-3">Payment Channel</th>
+                  <th class="py-2.5 px-3 text-right">Amount Disbursed</th>
+                  <th class="py-2.5 px-3">Notes</th>
+                  <th class="py-2.5 px-3 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="distributionsTableBody" class="divide-y divide-slate-100">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+          <div id="emptyDistributionsMsg" class="hidden py-8 text-center text-slate-400 text-xs">
+            No partner payouts logged yet.
           </div>
         </div>
       </section>
@@ -272,8 +357,12 @@
       <section id="section-expenses" class="hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
           <div class="flex flex-wrap items-center gap-2">
-            <input type="text" id="expenseSearchInput" placeholder="Search description, recipient..." oninput="window.app && window.app.renderExpenses()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-48 sm:w-64">
+            <input type="text" id="expenseSearchInput" placeholder="Search description, recipient..." oninput="window.app && window.app.renderExpenses()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-44 sm:w-56">
             
+            <select id="expenseProjectFilter" onchange="window.app && window.app.renderExpenses()" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none">
+              <option value="ALL">All Projects</option>
+            </select>
+
             <select id="expenseCategoryFilter" onchange="window.app && window.app.renderExpenses()" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none">
               <option value="ALL">All Categories</option>
               <option value="Inventory / Raw Materials">Inventory & Goods</option>
@@ -308,6 +397,7 @@
               <thead class="bg-slate-50 text-slate-500 uppercase font-semibold text-[11px] border-b border-slate-200">
                 <tr>
                   <th class="py-3 px-4">Date</th>
+                  <th class="py-3 px-4">Project</th>
                   <th class="py-3 px-4">Category</th>
                   <th class="py-3 px-4">Description / Payee</th>
                   <th class="py-3 px-4">Payment Mode</th>
@@ -333,7 +423,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
           <div>
             <h3 class="font-bold text-slate-900 text-sm">Direct Revenue & Capital Inflow</h3>
-            <p class="text-xs text-slate-500">Record day-to-day sales, customer collections, and capital investments</p>
+            <p class="text-xs text-slate-500">Record sales, customer collections, and capital investments per project</p>
           </div>
           <button onclick="window.app && window.app.openModal('inflowModal')" class="inline-flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm">
             <i class="ph-bold ph-plus"></i>
@@ -347,6 +437,7 @@
               <thead class="bg-slate-50 text-slate-500 uppercase font-semibold text-[11px] border-b border-slate-200">
                 <tr>
                   <th class="py-3 px-4">Date</th>
+                  <th class="py-3 px-4">Project</th>
                   <th class="py-3 px-4">Inflow Source</th>
                   <th class="py-3 px-4">Client / Payer Details</th>
                   <th class="py-3 px-4">Deposit Channel</th>
@@ -402,6 +493,7 @@
               <thead class="bg-slate-50 text-slate-500 uppercase font-semibold text-[11px] border-b border-slate-200">
                 <tr>
                   <th class="py-2.5 px-3">Date</th>
+                  <th class="py-2.5 px-3">Project</th>
                   <th class="py-2.5 px-3">Lender / Loan</th>
                   <th class="py-2.5 px-3">Principal Paid</th>
                   <th class="py-2.5 px-3">Interest Paid</th>
@@ -449,6 +541,7 @@
             <button onclick="window.app && window.app.setLedgerFilter('INFLOW')" class="ledger-filter-btn px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium" data-filter="INFLOW">Only Inflows (+)</button>
             <button onclick="window.app && window.app.setLedgerFilter('OUTFLOW')" class="ledger-filter-btn px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium" data-filter="OUTFLOW">Only Outflows (-)</button>
             <button onclick="window.app && window.app.setLedgerFilter('LOAN')" class="ledger-filter-btn px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium" data-filter="LOAN">Loan Transactions</button>
+            <button onclick="window.app && window.app.setLedgerFilter('PAYOUT')" class="ledger-filter-btn px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium" data-filter="PAYOUT">Partner Payouts</button>
           </div>
         </div>
 
@@ -459,6 +552,7 @@
               <thead class="bg-slate-900 text-slate-200 uppercase font-semibold text-[11px]">
                 <tr>
                   <th class="py-3 px-4">Date</th>
+                  <th class="py-3 px-4">Project</th>
                   <th class="py-3 px-4">Transaction Details</th>
                   <th class="py-3 px-4">Flow Type</th>
                   <th class="py-3 px-4">Method / Channel</th>
@@ -543,8 +637,8 @@
             </div>
 
             <div class="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 space-y-1">
-              <p class="font-semibold flex items-center"><i class="ph ph-lightbulb mr-1.5"></i> Business Loan Tip</p>
-              <p>Borrowing increases immediate liquid cash in your account, but the principal liability is not income. Always maintain an interest reserve ratio equal to 3 months of EMI.</p>
+              <p class="font-semibold flex items-center"><i class="ph ph-lightbulb mr-1.5"></i> Multi-Project Tip</p>
+              <p>Borrowing increases immediate liquid cash in the project's account. Keep project debts and partner stakes segregated to ensure accurate dividend disbursements.</p>
             </div>
           </div>
         </div>
@@ -554,6 +648,165 @@
   </main>
 
   <!-- ==================== MODALS ==================== -->
+
+  <!-- 0. ADD / MANAGE PROJECT MODAL -->
+  <div id="projectModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+          <i class="ph-bold ph-folder-plus text-emerald-600"></i>
+          <span>Create New Project</span>
+        </h3>
+        <button onclick="window.app && window.app.closeModal('projectModal')" class="text-slate-400 hover:text-slate-600">
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+      <form id="projectForm" onsubmit="window.app && window.app.handleProjectSubmit(event)" class="space-y-3 mt-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Project Name *</label>
+          <input type="text" id="projName" required placeholder="e.g. Olivetree Interiors, BSK Icon" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Description / Scope</label>
+          <input type="text" id="projDesc" placeholder="e.g. Residential design firm or real estate venture" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Start Date</label>
+            <input type="date" id="projStartDate" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Status</label>
+            <select id="projStatus" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+              <option value="active">Active</option>
+              <option value="on_hold">On Hold</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+        </div>
+        <div class="pt-3 flex justify-end space-x-2">
+          <button type="button" onclick="window.app && window.app.closeModal('projectModal')" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm">Save Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 0.1 ADD STAKEHOLDER MODAL -->
+  <div id="stakeholderModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+          <i class="ph-bold ph-user-plus text-indigo-600"></i>
+          <span>Add Project Stakeholder</span>
+        </h3>
+        <button onclick="window.app && window.app.closeModal('stakeholderModal')" class="text-slate-400 hover:text-slate-600">
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+      <form id="stakeholderForm" onsubmit="window.app && window.app.handleStakeholderSubmit(event)" class="space-y-3 mt-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Select Project *</label>
+          <select id="stakeholderProjectSelect" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none"></select>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Partner / Stakeholder Name *</label>
+          <input type="text" id="shName" required placeholder="e.g. Narayana Gundareddy" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Stake Percentage (%) *</label>
+            <input type="number" step="0.1" min="0.1" max="100" id="shStake" required placeholder="e.g. 50" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Capital Invested</label>
+            <input type="number" step="0.01" id="shCapital" placeholder="0.00" oninput="window.app && window.app.updateAmountWords('shCapital', 'shCapitalWords')" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+        </div>
+        <p id="shCapitalWords" class="text-[11px] text-indigo-600 font-medium italic mt-0.5 leading-snug"></p>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Phone / WhatsApp</label>
+            <input type="text" id="shPhone" placeholder="+91 ..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Email</label>
+            <input type="email" id="shEmail" placeholder="partner@example.com" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+        </div>
+
+        <div class="pt-3 flex justify-end space-x-2">
+          <button type="button" onclick="window.app && window.app.closeModal('stakeholderModal')" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-sm">Save Stakeholder</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 0.2 RECORD PARTNER PAYOUT MODAL -->
+  <div id="payoutModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-bold text-slate-900 text-base flex items-center space-x-2">
+          <i class="ph-bold ph-hand-coins text-emerald-600"></i>
+          <span>Record Partner Profit Payout</span>
+        </h3>
+        <button onclick="window.app && window.app.closeModal('payoutModal')" class="text-slate-400 hover:text-slate-600">
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+      <form id="payoutForm" onsubmit="window.app && window.app.handlePayoutSubmit(event)" class="space-y-3 mt-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Select Project *</label>
+          <select id="payoutProjectSelect" onchange="window.app && window.app.updatePayoutStakeholderOptions(this.value)" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"></select>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Beneficiary Partner *</label>
+          <select id="payoutStakeholderSelect" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Payout Date *</label>
+            <input type="date" id="payoutDate" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Amount *</label>
+            <input type="number" step="0.01" id="payoutAmount" required placeholder="0.00" oninput="window.app && window.app.updateAmountWords('payoutAmount', 'payoutAmountWords')" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+        </div>
+        <p id="payoutAmountWords" class="text-[11px] text-emerald-600 font-medium italic mt-0.5 leading-snug"></p>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Payout Type</label>
+            <select id="payoutType" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+              <option value="profit_payout">Profit / Dividend Share</option>
+              <option value="capital_withdrawal">Capital Return / Draw</option>
+              <option value="salary_draw">Partner Remuneration</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Payment Mode</label>
+            <select id="payoutMode" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="UPI / Online">UPI / PhonePe</option>
+              <option value="Cheque">Cheque</option>
+              <option value="Cash">Cash</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Notes / Voucher Reference</label>
+          <input type="text" id="payoutNotes" placeholder="e.g. Q3 Profit settlement or advance draw" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+        <div class="pt-3 flex justify-end space-x-2">
+          <button type="button" onclick="window.app && window.app.closeModal('payoutModal')" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm">Disburse Payout</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- 1. ADD EXPENSE MODAL -->
   <div id="expenseModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
@@ -568,6 +821,11 @@
         </button>
       </div>
       <form id="expenseForm" onsubmit="window.app && window.app.handleExpenseSubmit(event)" class="space-y-3 mt-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Allocated Project *</label>
+          <select id="expProjectId" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 outline-none"></select>
+        </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Expense Date *</label>
@@ -576,9 +834,9 @@
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Amount *</label>
             <input type="number" step="0.01" id="expAmount" required placeholder="0.00" oninput="window.app && window.app.updateAmountWords('expAmount', 'expAmountWords')" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 outline-none">
-            <p id="expAmountWords" class="text-[11px] text-rose-600 font-medium italic mt-1 leading-snug"></p>
           </div>
         </div>
+        <p id="expAmountWords" class="text-[11px] text-rose-600 font-medium italic mt-0.5 leading-snug"></p>
 
         <div>
           <label class="block font-semibold text-slate-600 mb-1">Expense Category *</label>
@@ -597,7 +855,7 @@
 
         <div>
           <label class="block font-semibold text-slate-600 mb-1">Description / Paid To *</label>
-          <input type="text" id="expDesc" required placeholder="e.g. Supplier payment for packing materials" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 outline-none">
+          <input type="text" id="expDesc" required placeholder="e.g. Supplier payment for plywood/materials" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 outline-none">
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -638,6 +896,11 @@
         </button>
       </div>
       <form id="inflowForm" onsubmit="window.app && window.app.handleInflowSubmit(event)" class="space-y-3 mt-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Credited Project *</label>
+          <select id="inflowProjectId" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none"></select>
+        </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Inflow Date *</label>
@@ -646,25 +909,25 @@
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Amount Credited *</label>
             <input type="number" step="0.01" id="inflowAmount" required placeholder="0.00" oninput="window.app && window.app.updateAmountWords('inflowAmount', 'inflowAmountWords')" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-            <p id="inflowAmountWords" class="text-[11px] text-emerald-600 font-medium italic mt-1 leading-snug"></p>
           </div>
         </div>
+        <p id="inflowAmountWords" class="text-[11px] text-emerald-600 font-medium italic mt-0.5 leading-snug"></p>
 
         <div>
           <label class="block font-semibold text-slate-600 mb-1">Inflow Source Category *</label>
           <select id="inflowSource" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-            <option value="Direct Sales Revenue">Daily Direct Sales Revenue</option>
-            <option value="Client Receivable Payment">Client Receivable / Invoice Settled</option>
-            <option value="Owner Capital Contribution">Owner Capital Injection</option>
-            <option value="Commission / Rebate">Commission / Partner Rebate</option>
-            <option value="Asset Sale">Equipment / Asset Sale</option>
+            <option value="Direct Sales Revenue">Client Project Revenue / Fees</option>
+            <option value="Client Receivable Payment">Client Receivable / Milestone Settled</option>
+            <option value="Owner Capital Contribution">Partner Capital Injection</option>
+            <option value="Commission / Rebate">Vendor Rebate / Commission</option>
+            <option value="Asset Sale">Equipment / Scrap Sale</option>
             <option value="Other Inflow">Other Income</option>
           </select>
         </div>
 
         <div>
           <label class="block font-semibold text-slate-600 mb-1">Payer / Client Name / Description *</label>
-          <input type="text" id="inflowDesc" required placeholder="e.g. Order #4102 - Apex Enterprises" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+          <input type="text" id="inflowDesc" required placeholder="e.g. 2nd Installment - Villa 104 Interior" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -678,7 +941,7 @@
           </div>
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Tax Invoice # (Optional)</label>
-            <input type="text" id="inflowRef" placeholder="e.g. INV-2024-05" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
+            <input type="text" id="inflowRef" placeholder="e.g. INV-2026-05" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
           </div>
         </div>
 
@@ -703,14 +966,15 @@
         </button>
       </div>
       <form id="loanForm" onsubmit="window.app && window.app.handleLoanSubmit(event)" class="space-y-3 mt-4 text-xs">
-        <div class="p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl text-indigo-900 text-[11px] leading-relaxed">
-          <strong>Note:</strong> Borrowing this loan will immediately add the principal amount into your active cash in hand, and register an ongoing interest liability.
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Project Assignment</label>
+          <select id="loanProjectId" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none"></select>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Lender / Financial Source *</label>
-            <input type="text" id="loanLender" required placeholder="e.g. HDFC Bank, Private Investor" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input type="text" id="loanLender" required placeholder="e.g. State Bank, Private Lender" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Loan Category</label>
@@ -727,7 +991,6 @@
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Principal Borrowed *</label>
             <input type="number" step="0.01" id="loanPrincipal" required placeholder="100000" oninput="window.app && window.app.updateAmountWords('loanPrincipal', 'loanPrincipalWords')" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
-            <p id="loanPrincipalWords" class="text-[11px] text-indigo-600 font-medium italic mt-1 leading-snug"></p>
           </div>
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Interest Rate (%/yr) *</label>
@@ -738,6 +1001,7 @@
             <input type="number" id="loanTenure" required placeholder="12" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
         </div>
+        <p id="loanPrincipalWords" class="text-[11px] text-indigo-600 font-medium italic mt-0.5 leading-snug"></p>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -755,7 +1019,7 @@
 
         <div>
           <label class="block font-semibold text-slate-600 mb-1">Notes / Loan Agreement Ref</label>
-          <input type="text" id="loanNotes" placeholder="Loan A/c # 8829103 - 1st charge on inventory" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input type="text" id="loanNotes" placeholder="Working capital for Project materials" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
         </div>
 
         <div class="pt-3 flex justify-end space-x-2">
@@ -808,7 +1072,6 @@
           </div>
         </div>
 
-        <!-- Principal vs Interest Breakdown for the repayment -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Principal Reduction Amount *</label>
